@@ -55,7 +55,8 @@ async function run() {
         // get all post --
         app.get("/post", async (req, res) => {
             // const query = {};
-            const result = await postsCollection.find({}).toArray();
+            const result1 = await postsCollection.find({}).toArray();
+            const result = result1.reverse();
             if (result) {
                 res.send({
                     success: true,
