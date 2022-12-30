@@ -91,6 +91,81 @@ async function run() {
         });
 
 
+        // add comment on post  ----
+        app.put("/post/:id", async (req, res) => {
+            const id = req?.params?.id;
+            const comment = req?.body;
+            let query = { _id: ObjectId(id) };
+            // console.log(id, comment);
+            const updateDoc = {
+                $push: {
+                    comments: comment,
+                }
+            };
+            const options = { upsert: true };
+            const resultEdit = await usersCollection.updateOne(query, updateDoc, options);
+            console.log(resultEdit);
+        });
+
+        // get user  and edit user data ------
+        app.get("/user", async (req, res) => {
+            const email = req.query?.email;
+            const query = { email: email };
+            const result = await usersCollection.findOne(query);
+            if (result) {
+                res.send({
+                    success: true,
+                    message: "Successfully got the user.",
+                    data: result,
+                });
+            } else {
+                res.send({
+                    success: false,
+                    message: "No user found on database record."
+                });
+            };
+        });
+
+
+        // EDIT user data ------
+        app.put("/user", async (req, res) => {
+            const email = req.query?.email;
+            const query = { email: email };
+            const modalEditedData = req?.body;
+            const result = await usersCollection.findOne(query);
+            if (result) {
+                const updateDoc = {
+                    $set: {
+                        displayName: modalEditedData?.displayName,
+                        university: modalEditedData?.university,
+                        profession: modalEditedData?.profession,
+                        address: modalEditedData?.address,
+                    },
+                };
+                const options = { upsert: true };
+                const resultEdit = await usersCollection.updateOne(query, updateDoc, options);
+                if (resultEdit?.acknowledged) {
+                    res.send({
+                        success: true,
+                        message: "Successfully got the user.",
+                        data: resultEdit,
+                    });
+                } else {
+                    res.send({
+                        success: false,
+                        message: "Success but acknowledged false/ no data changed",
+                    });
+                };
+            } else {
+                const resultElse = usersCollection.insertOne(modalEditedData);
+                res.send({
+                    success: false,
+                    message: "No user found on database record.",
+                    data: resultElse,
+                });
+            };
+        });
+
     } catch (error) {
         console.log("error from TRY catch function's catch section:".bgRed, error);
     };
