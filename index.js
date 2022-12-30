@@ -52,6 +52,25 @@ async function run() {
             };
         });
 
+        // get only 3 most popular  post --
+        app.get("/posts", async (req, res) => {
+            const query = {};
+            const cursor = postsCollection.find(query).sort({ "likes": 1 });
+            const result = await cursor.limit(3).toArray();
+            // const result = await cursor.toArray();
+            if (result) {
+                res.send({
+                    success: true,
+                    message: "Successfully add the  posts",
+                    data: result,
+                });
+            } else {
+                res.send({
+                    success: false,
+                    message: "No post found/or, somthing went wron form database"
+                });
+            };
+        });
         // get all post --
         app.get("/post", async (req, res) => {
             // const query = {};
@@ -92,7 +111,7 @@ async function run() {
 
 
         // add comment on post  ----
-        app.put("/post/:id", async (req, res) => {
+        app.put("/post/comments/:id", async (req, res) => {
             const id = req?.params?.id;
             const comment = req?.body;
             let query = { _id: ObjectId(id) };
@@ -103,9 +122,48 @@ async function run() {
                 }
             };
             const options = { upsert: true };
-            const resultEdit = await usersCollection.updateOne(query, updateDoc, options);
-            console.log(resultEdit);
+            const result = await postsCollection.updateOne(query, updateDoc, options);
+            if (result?.acknowledged) {
+                res.send({
+                    success: true,
+                    message: "Successfully add the  posts",
+                    data: result,
+                });
+            } else {
+                res.send({
+                    success: false,
+                    message: "Comments add failed, something gone wrong."
+                });
+            };
         });
+
+        // add comment on post  ----
+        app.put("/post/likes/:id", async (req, res) => {
+            const id = req?.params?.id;
+            const like = req?.body;
+            let query = { _id: ObjectId(id) };
+            // console.log(id, like);
+            const updateDoc = {
+                $push: {
+                    likes: like,
+                }
+            };
+            const options = { upsert: true };
+            const result = await postsCollection.updateOne(query, updateDoc, options);
+            if (result?.acknowledged) {
+                res.send({
+                    success: true,
+                    message: "Successfully add the  posts",
+                    data: result,
+                });
+            } else {
+                res.send({
+                    success: false,
+                    message: "likes add failed, something gone wrong."
+                });
+            };
+        });
+
 
         // get user  and edit user data ------
         app.get("/user", async (req, res) => {
